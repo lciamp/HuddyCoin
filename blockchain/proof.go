@@ -14,7 +14,6 @@ import (
 
 // take data from block
 
-
 // create counter that starts at 0
 
 // create hash of data plus the counter
@@ -22,10 +21,12 @@ import (
 // check hash to see if it meets set of requirements
 
 // requirements:
-// first few bytes of has must contain 0s
+// first few bytes of hash must contain 0s
 
-const Difficulty = 18
+const Difficulty = 20
 
+// ProofOfWork structure for proof of work
+// contains pointers to a Block and a Target
 type ProofOfWork struct {
 	Block *Block
 	Target *big.Int
@@ -63,6 +64,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 		data := pow.InitData(nonce)
 		hash = sha256.Sum256(data)
 
+		// %x (hexadecimal format)
 		fmt.Printf("\r%x", hash)
 		intHash.SetBytes(hash[:])
 
