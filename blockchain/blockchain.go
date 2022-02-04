@@ -16,6 +16,12 @@ type BlockChain struct {
 	Database *badger.DB
 }
 
+// BlockChainIterator structure for going through the chain
+type BlockChainIterator struct {
+	CurrentHash []byte
+	Database *badger.DB
+}
+
 func InitBlockChain() *BlockChain {
 	var lastHash []byte
 
@@ -83,3 +89,31 @@ func (chain *BlockChain) AddBlock(data string) {
 	Handle(err)
 }
 
+// Iterator function converting Blockchain into BlockChainIterator
+func (chain *BlockChain) Iterator() *BlockChainIterator {
+	// passing in last has means we will iterate from the newest block in reverse to the genesis block
+	iter := &BlockChainIterator{chain.LashHash, chain.Database}
+
+	return iter
+}
+
+// Next function to iterate through our BlockChainIterator and return a Block
+func (iter *BlockChainIterator) Next() *Block {
+	var block *Block
+
+	// get the block from the db
+	err := iter.Database.View(func(txn badger.Txn) error {
+		item, err := txn.Get(iter.CurrentHash)
+		Handle(err)
+		encodedBlock, err := item.Value()
+		block = Deserialize(encodedBlock)
+
+		return err
+	})
+	Handle(err)
+
+	// after getting block, point the current hash to the previous hash
+	iter.CurrentHash = block.PrevHash
+
+	return block
+}
